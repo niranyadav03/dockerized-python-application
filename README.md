@@ -30,4 +30,3 @@ docker-compose stop(just to stop containers)
 Once the containers are running, you can access the application via:
 
 Web UI: Open your browser and go to http://localhost. This should display the To-Do List application.
-Flask API: The Flask API is accessible at http://localhost/api/todos.
