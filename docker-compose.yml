@@ -1,0 +1,37 @@
+version: '3'
+services:
+  mongo:
+    image: mongo:latest
+    container_name: mongo
+    volumes:
+      - /opt/mongo-data:/data/db  # persist MongoDB data
+    networks:
+      - all-apps-network
+    ports:
+      - "27017:27017"
+
+  backend:
+    build: ./app
+    container_name: flask-backend
+    volumes:
+      - ./app:/app
+    networks:
+      - all-apps-network
+    depends_on:
+      - mongo
+    ports:
+      - "5000:5000"
+
+  nginx:
+    build: ./nginx
+    container_name: nginx
+    depends_on:
+      - backend
+    ports:
+      - "80:80"
+    networks:
+      - all-apps-network
+
+networks:
+  all-apps-network:
+    driver: bridge

@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>To-Do List</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f0f2f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+        .container {
+            background: #ffffff;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        .btn-primary {
+            background-color: #007bff;
+            border: none;
+        }
+        .btn-primary:hover {
+            background-color: #0056b3;
+        }
+        .btn-success {
+            background-color: #28a745;
+            border: none;
+        }
+        .btn-success:hover {
+            background-color: #218838;
+        }
+        .btn-danger {
+            background-color: #dc3545;
+            border: none;
+        }
+        .btn-danger:hover {
+            background-color: #c82333;
+        }
+        .badge {
+            font-size: 0.875em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="text-center mb-4">To-Do List</h1>
+        <div class="input-group mb-4">
+            <input type="text" class="form-control" id="newTask" placeholder="New task">
+            <button class="btn btn-primary" onclick="createTask()">Add Task</button>
+        </div>
+        <h3 class="mb-3">Tasks</h3>
+        <ul id="tasks" class="list-group">
+            <!-- Task items will be dynamically added here -->
+        </ul>
+    </div>
+
+    <!-- Bootstrap JS and dependencies -->
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Fetch all tasks
+        function fetchTasks() {
+            fetch('/todos')
+                .then(response => response.json())
+                .then(data => {
+                    const tasksList = document.getElementById('tasks');
+                    tasksList.innerHTML = ''; // Clear the list first
+                    data.forEach(task => {
+                        const taskItem = document.createElement('li');
+                        taskItem.classList.add('list-group-item', 'd-flex', 'justify-content-between', 'align-items-center', 'task-item');
+                        taskItem.innerHTML = `
+                            ${task.task} <span class="badge bg-primary">${task.status}</span>
+                            <div>
+                                <button class="btn btn-danger btn-sm ms-2" onclick="deleteTask('${task.id}')">Delete</button>
+                                <button class="btn btn-success btn-sm ms-2" onclick="markComplete('${task.id}')">Mark Complete</button>
+                            </div>
+                        `;
+                        tasksList.appendChild(taskItem);
+                    });
+                });
+        }
+
+        // Create a new task
+        function createTask() {
+            const newTaskInput = document.getElementById('newTask');
+            const task = newTaskInput.value;
+            if (task) {
+                fetch('/todos', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ task: task })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    fetchTasks(); // Refresh the task list
+                    newTaskInput.value = ''; // Clear the input field
+                });
+            } else {
+                alert('Please enter a task');
+            }
+        }
+
+        // Delete a task
+        function deleteTask(id) {
+            fetch(`/todos/${id}`, { method: 'DELETE' })
+                .then(() => fetchTasks());
+        }
+
+        // Mark task as complete
+        function markComplete(id) {
+            fetch(`/todos/${id}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ status: 'complete' })
+            })
+            .then(() => fetchTasks());
+        }
+
+        // Load tasks on page load
+        window.onload = fetchTasks;
+    </script>
+</body>
+</html>
